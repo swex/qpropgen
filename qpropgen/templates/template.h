@@ -9,6 +9,17 @@
 #include <{{include}}>
 {%- endfor %}
 
+{%- if namespace %}
+namespace {{namespace}} {
+{%- endif %}
+
+{%- for declaration in forward_declarations %}
+class {{declaration}};
+{%- endfor %}
+
+
+
+
 class {{ className }} : public {{ baseClassName }} {
     Q_OBJECT
 {% for property in properties %}
@@ -22,6 +33,9 @@ class {{ className }} : public {{ baseClassName }} {
             NOTIFY {{ property.name}}Changed
     {%- endif %}
     )
+    {%- if property.db|length > 0 %}
+    Q_CLASSINFO("{{ property.name }}", "{% for option in property.db %}{{option if option is not none else "null"|string}}={{property.db[option]|string|lower}} {%- if not loop.last %} {% else %}"{% endif %}{% endfor %})
+    {%- endif %}
 {% endfor %}
 public:
     explicit {{ className }}(QObject* parent = nullptr);
@@ -41,10 +55,13 @@ signals:
 {%- for group in properties|groupby('access') %}
 {{ group.grouper }}:
     {%- for property in group.list %}
-    {{ property.type }} {{ property.varName }}{% if property.value is defined %} = {{ property.value }}{% endif %};
+    {% if property.fk == True and baseClassName == 'QDjangoModel' %}{%else%}{{ property.type }} {{ property.varName }}{% if property.value is defined %} = {{ property.value }}{% endif %};
+    {% endif %}
     {%- endfor %}
 {%- endfor %}
 };
-
+{%- if namespace %}
+} //namespace {{namespace}}
+{%- endif %}
 #endif // {{ include_guard }}
 

@@ -43,6 +43,8 @@ class ClassDefinition:
         self.class_name = dct['class']
         self.base_class_name = dct.get('baseClass', 'QObject')
         self.includes = dct.get('includes', [])
+        self.forward_declarations = dct.get('forward_declarations', [])
+        self.namespace=dct.get('namespace',"")
 
         self._read_defaults(dct)
         self.properties = [self._complete_property(x) for x in
@@ -54,8 +56,10 @@ class ClassDefinition:
             className=self.class_name,
             baseClassName=self.base_class_name,
             includes=self.includes,
+            forward_declarations=self.forward_declarations,
             header=self.header,
             properties=self.properties,
+            namespace=self.namespace
         )
 
         with open(out_path, 'w') as f:
